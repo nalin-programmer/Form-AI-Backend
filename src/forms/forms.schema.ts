@@ -31,9 +31,10 @@ class Question {
 
 const QuestionSchema = SchemaFactory.createForClass(Question);
 
-@Schema()
+@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Form {
-    @ApiProperty({ type: String, example: 'b5fefb28-9b90-4c6f-a6a9-42e7e4a9e95a', description: 'Unique form ID.' })
+
+    // @ApiProperty({ type: String, example: 'b5fefb28-9b90-4c6f-a6a9-42e7e4a9e95a', description: 'Unique form ID.' })
     @Prop({
         type: String,
         default: () => uuidv4(),
