@@ -28,4 +28,11 @@ export class FormsController {
     async deleteForm(@Param('id') id: string): Promise<Form | null> {
         return await this.formsService.deleteById(id);
     }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Retrieve a form by ID', description: 'Retrieves a specific form by its ID.' })
+    @ApiResponse({ status: 200, description: 'Form retrieved successfully.', type: Form })
+    async getFormById(@Param('id') id: string): Promise<Form | null> {
+        return await this.formsService.findById(id);
+    }
 }

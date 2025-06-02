@@ -37,4 +37,13 @@ export class FormsService {
             throw new Error(`Error deleting form with id ${id}`);
         }
     }
+
+    async findById(id: string): Promise<Form | null> {
+        try {
+            return this.formModel.findById(id).exec();
+        } catch (error) {
+            Logger.error(`Error fetching form with id ${id}:`, error);
+            throw new Error(`Error fetching form with id ${id}`);
+        }
+    }
 }
