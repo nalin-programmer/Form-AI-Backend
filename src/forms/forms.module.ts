@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Form, FormSchema } from './forms.schema';
+import { Form, FormSchema } from './schemas/forms.schema';
 import { FormsController } from './forms.controller';
 import { FormsService } from './forms.service';
 

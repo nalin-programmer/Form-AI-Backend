@@ -21,7 +21,6 @@ export class Response {
     @Prop({
         type: String,
         default: () => uuidv4(),
-        unique: true,
         required: true,
     })
     _id: string;
@@ -38,7 +37,7 @@ export class Response {
     @Prop({ type: [AnswerSchema], required: true })
     response: Answer[];
 
-    @Prop({ required: true, enum: ResponseStatus, default: ResponseStatus.IN_PROGRESS })
+    @Prop({ required: false, enum: ResponseStatus, default: ResponseStatus.IN_PROGRESS })
     status: ResponseStatus;
 }
 
