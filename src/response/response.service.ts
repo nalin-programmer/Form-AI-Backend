@@ -16,6 +16,7 @@ export class ResponseService {
     ) { }
 
     async create(createResponseDto: CreateResponseDto): Promise<any> {
+        Logger.log(`Creating response for formId: ${createResponseDto.form_id} and respondentId: ${createResponseDto.respondent_id}`);
         let finalResponse;
         const [form, existingResponse] = await Promise.all([
             this.formModel.findById(createResponseDto.form_id),
@@ -28,7 +29,7 @@ export class ResponseService {
         }
         if (existingResponse && existingResponse.status === ResponseStatus.COMPLETED) {
             Logger.warn(`Response already exists for formId ${createResponseDto.form_id} and respondentId ${createResponseDto.respondent_id}`);
-            throw new ConflictException('Response already exists for this formId and respondentId');
+            return { response_status: ResponseStatus.COMPLETED, message: 'All questions answered' };
         }
 
         try {
@@ -80,10 +81,8 @@ export class ResponseService {
     async update(updateResponseDto: UpdateResponseDto): Promise<any> {
         let response, form;
         try {
-            [form, response] = await Promise.all([
-                this.formModel.findById(response.form_id).exec(),
-                this.responseModel.findById(updateResponseDto.response_id).exec()
-            ]);
+            response = await this.responseModel.findById(updateResponseDto.response_id).populate('form_id').exec();
+            form = response.form_id;
         } catch (error) {
             Logger.error(`Error fetching form or response:`, error);
             throw new Error(`Error fetching form or response`);
@@ -100,7 +99,7 @@ export class ResponseService {
 
         if (response.status === ResponseStatus.COMPLETED) {
             Logger.warn(`Response with id ${updateResponseDto.response_id} is already completed`);
-            throw new Error(`Response with id ${updateResponseDto.response_id} is already completed`);
+            return { response_status: ResponseStatus.COMPLETED, message: 'All questions already answered' };
         }
 
         try {

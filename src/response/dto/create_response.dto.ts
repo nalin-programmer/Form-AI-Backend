@@ -22,8 +22,8 @@ export class CreateResponseDto {
     respondent_name: string;
 
     @ApiProperty({
-        example: 'nalin@gmail.com',
-        description: 'Email address of the respondent.',
+        example: 'nalinagrawal333@gmail.com',
+        description: 'unique id of the respondent.',
         minLength: 1,
         maxLength: 100,
     })
