@@ -123,32 +123,33 @@ export class ResponseService {
 
         } else {
             Logger.log(`All questions answered for response with id ${updateResponseDto.response_id}`);
-            await this.responseModel.findByIdAndUpdate(updateResponseDto.response_id, { status: ResponseStatus.COMPLETED }).exec();
+
+            await Promise.all([
+                this.formModel.findByIdAndUpdate(form._id, { $inc: { total_responses: 1 } }).exec(),
+                this.responseModel.findByIdAndUpdate(updateResponseDto.response_id, { status: ResponseStatus.COMPLETED }).exec()
+            ]);
 
             return { response_status: ResponseStatus.COMPLETED, message: 'All questions answered' };
         }
     }
 
+    async findResponseByFormId(formId: string): Promise<any> {
+        try {
+            let questionMap = {};
+            const [responses, form] = await Promise.all([
+                this.responseModel.find({ form_id: formId }).sort({ created_at: -1 }).exec(),
+                this.formModel.findById(formId).exec()
+            ]);
+            if (form?.questions?.length) {
 
-    // async findOne(id: string): Promise<Response | null> {
-    //     try {
-    //         return this.responseModel.findById(id).exec();
-    //     } catch (error) {
-    //         Logger.error(`Error fetching response with id ${id}:`, error);
-    //         throw new Error(`Error fetching response with id ${id}`);
-    //     }
-    // }
-
-    // async remove(id: string): Promise<Response | null> {
-    //     try {
-    //         return this.responseModel.findByIdAndDelete(id).exec();
-    //     } catch (error) {
-    //         Logger.error(`Error deleting response with id ${id}:`, error);
-    //         throw new Error(`Error deleting response with id ${id}`);
-    //     }
-    // }
-}
-
-function HTTPException(arg0: number, arg1: any, arg2: string) {
-    throw new Error('Function not implemented.');
+                form.questions.forEach(q => {
+                    questionMap[q.question_no] = q.question;
+                });
+            }
+            return { form, responses, questionMap };
+        } catch (error) {
+            Logger.error(`Error fetching responses for formId ${formId}:`, error);
+            throw new Error(`Error fetching responses for formId ${formId}`);
+        }
+    }
 }

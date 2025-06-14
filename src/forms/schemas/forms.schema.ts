@@ -29,6 +29,21 @@ class Question {
     image?: string;
 }
 
+@Schema({ _id: false })
+class BackgroundImages {
+    @ApiProperty({ type: String, required: false, example: 'https://example.com/background.png', description: 'URL of the welcome image.' })
+    @Prop({ type: String, required: false, default: undefined })
+    welcome?: string;
+
+    @ApiProperty({ type: String, required: false, example: 'https://example.com/logo.png', description: 'URL of the thank_you image.' })
+    @Prop({ type: String, required: false, default: undefined })
+    thank_you?: string;
+
+    @ApiProperty({ type: String, required: false, example: 'https://example.com/logo.png', description: 'URL of the personal_information image.' })
+    @Prop({ type: String, required: false, default: undefined })
+    personal_information?: string;
+}
+
 const QuestionSchema = SchemaFactory.createForClass(Question);
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
@@ -54,9 +69,15 @@ export class Form {
     @Prop({ type: [QuestionSchema], default: [] })
     questions: Question[];
 
+    @ApiProperty({ type: BackgroundImages, description: 'Background images for the form.' })
+    @Prop({ type: BackgroundImages, default: () => ({}) })
+    background_images: BackgroundImages;
+
     @ApiProperty({ example: 0, description: 'Number of times the form has been submitted.' })
     @Prop({ type: Number, default: 0 })
     total_responses: number;
+
+
 }
 
 export const FormSchema = SchemaFactory.createForClass(Form);

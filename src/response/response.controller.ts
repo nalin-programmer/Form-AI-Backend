@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ResponseService } from "./response.service";
 import { CreateResponseDto } from "./dto/create_response.dto";
@@ -22,5 +22,11 @@ export class ResponseController {
     @ApiCreatedResponse({ description: 'Response updated successfully', type: UpdateResponseDto })
     async updateResponse(@Body() updateResponseDto: UpdateResponseDto): Promise<any> {
         return this.responseService.update(updateResponseDto);
+    }
+
+    @Get(':formId')
+    @ApiOperation({ summary: 'Get responses by form ID', description: 'Retrieves all responses associated with a specific form ID.' })
+    async getResponsesByFormId(@Param('formId') formId: string): Promise<any> {
+        return this.responseService.findResponseByFormId(formId);
     }
 }

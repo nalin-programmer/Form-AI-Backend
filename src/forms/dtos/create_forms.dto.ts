@@ -1,7 +1,8 @@
-import { IsString, IsNotEmpty, MaxLength, MinLength, ValidateNested, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, MinLength, ValidateNested, IsArray, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateQuestionDto } from './create-question.dto'; // Adjust import path if needed
+import { CreateQuestionDto } from './create_form_question.dto'; // Adjust import path if needed
+import { CreateFormsImageDto } from './create_forms_image.dto';
 
 export class CreateFormDto {
     @ApiProperty({
@@ -37,4 +38,9 @@ export class CreateFormDto {
     @ValidateNested({ each: true })
     @Type(() => CreateQuestionDto)
     questions: CreateQuestionDto[];
+
+    @IsObject()
+    @ValidateNested()
+    @Type(() => CreateFormsImageDto)
+    background_images: CreateFormsImageDto[];
 }

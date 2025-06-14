@@ -1,5 +1,6 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { ResponseType } from 'src/enums/response_type.enum';
 
 export class CreateQuestionDto {
     @ApiProperty({ example: 1, description: 'The order number of the question.' })
@@ -11,10 +12,10 @@ export class CreateQuestionDto {
     @IsNotEmpty()
     text: string;
 
-    @ApiProperty({ example: 'rating' }) // e.g., 'text', 'rating', 'multiple-choice'
-    @IsString()
+    @ApiProperty({ example: 'rating', enum: ResponseType, description: 'Response type' })
+    @IsEnum(ResponseType)
     @IsNotEmpty()
-    type: string;
+    type: ResponseType;
 }
 export class CreateQuestionWithOptionsDto extends CreateQuestionDto {
     @ApiProperty({ example: ['Very satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very dissatisfied'], required: false })
