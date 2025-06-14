@@ -136,6 +136,10 @@ export class ResponseService {
     async findResponseByFormId(formId: string): Promise<any> {
         try {
             let questionMap = {};
+            let graphData: { noOfResponse: number[], date: string[] } = {
+                noOfResponse: [],
+                date: []
+            }
             const [responses, form] = await Promise.all([
                 this.responseModel.find({ form_id: formId }).sort({ created_at: -1 }).exec(),
                 this.formModel.findById(formId).exec()
@@ -146,7 +150,17 @@ export class ResponseService {
                     questionMap[q.question_no] = q.question;
                 });
             }
-            return { form, responses, questionMap };
+            responses.forEach(resp => {
+                const date = new Date(resp.get('created_at')).toISOString().split('T')[0];
+                const idx = graphData.date.indexOf(date);
+                if (idx === -1) {
+                    graphData.date.push(date);
+                    graphData.noOfResponse.push(1);
+                } else {
+                    graphData.noOfResponse[idx]++;
+                }
+            });
+            return { form, responses, questionMap, graphData };
         } catch (error) {
             Logger.error(`Error fetching responses for formId ${formId}:`, error);
             throw new Error(`Error fetching responses for formId ${formId}`);
