@@ -7,6 +7,8 @@ import { Form, FormDocument } from 'src/forms/schemas/forms.schema';
 import { CreateResponseDto } from './dto/create_response.dto';
 import { UpdateResponseDto } from './dto/update_response.dto';
 import { response } from 'express';
+import { createClient } from 'redis';
+
 
 @Injectable()
 export class ResponseService {
@@ -19,7 +21,7 @@ export class ResponseService {
         Logger.log(`Creating response for formId: ${createResponseDto.form_id} and respondentId: ${createResponseDto.respondent_id}`);
         let finalResponse;
         const [form, existingResponse] = await Promise.all([
-            this.formModel.findById(createResponseDto.form_id),
+            this.findFormById(createResponseDto.form_id),
             this.findByFormIdAndRespondentId(createResponseDto.form_id, createResponseDto.respondent_id)
         ]);
 
@@ -78,11 +80,44 @@ export class ResponseService {
         }
     }
 
+    async findFormById(_id: string) {
+        const redisClient = createClient({
+            url: process.env.REDIS_URI,
+        });
+
+        await redisClient.connect();
+
+        const cacheKey = `form:${_id}`;
+        let form
+        form = await redisClient.get(cacheKey);
+
+        if (form) {
+            await redisClient.quit(); // optional, clean up
+            Logger.log('Form found in cache')
+            return JSON.parse(form);
+        }
+        Logger.log('Form NOT found in cache')
+        form = await this.formModel.findById(_id).exec();
+
+        if (form) {
+            const formObj = form.toObject ? form.toObject() : form;
+            Logger.log('Adding form to cache')
+            await redisClient.set(cacheKey, JSON.stringify(formObj), {
+                EX: 3600, // TTL in seconds
+            });
+            await redisClient.quit(); //  clean up
+            return formObj;
+        }
+
+        await redisClient.quit(); //  clean up
+        return form;
+    }
+
     async update(updateResponseDto: UpdateResponseDto): Promise<any> {
         let response, form;
         try {
-            response = await this.responseModel.findById(updateResponseDto.response_id).populate('form_id').exec();
-            form = response.form_id;
+            response = await this.responseModel.findById(updateResponseDto.response_id).exec();
+            form = await this.findFormById(response.form_id);
         } catch (error) {
             Logger.error(`Error fetching form or response:`, error);
             throw new Error(`Error fetching form or response`);
