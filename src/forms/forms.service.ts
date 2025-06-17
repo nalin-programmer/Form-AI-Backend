@@ -22,7 +22,7 @@ export class FormsService {
 
     async findAll(): Promise<Form[]> {
         try {
-            return this.formModel.find().exec();
+            return this.formModel.find().sort({ created_at: -1 }).exec();
         } catch (error) {
             Logger.error('Error fetching forms:', error);
             throw new Error('Error fetching forms');
