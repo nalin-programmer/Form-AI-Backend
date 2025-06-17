@@ -8,7 +8,7 @@ export type ResponseDocument = Response & Document;
 @Schema({ _id: false })
 class Answer {
     @Prop({ required: true })
-    question_no: string;
+    question_no: number;
 
     @Prop({ type: [String], required: true })
     response: string[];

@@ -8,6 +8,7 @@ import { CreateResponseDto } from './dto/create_response.dto';
 import { UpdateResponseDto } from './dto/update_response.dto';
 import { response } from 'express';
 import { createClient } from 'redis';
+import { ResponseType } from 'src/enums/response_type.enum';
 
 
 @Injectable()
@@ -177,7 +178,7 @@ export class ResponseService {
             }
             const [responses, form] = await Promise.all([
                 this.responseModel.find({ form_id: formId }).sort({ created_at: -1 }).exec(),
-                this.formModel.findById(formId).exec()
+                this.findFormById(formId)
             ]);
             if (form?.questions?.length) {
 
@@ -201,4 +202,86 @@ export class ResponseService {
             throw new Error(`Error fetching responses for formId ${formId}`);
         }
     }
+
+    async getResponseAnalyticsByFormId(form_id: string) {
+        Logger.log(`Stating analysis of response of form Id: ${form_id}`)
+
+        let response_array, form;
+        try {
+            [response_array, form] = await Promise.all([
+                this.responseModel.find({ form_id: form_id }).exec(),
+                this.findFormById(form_id)
+            ])
+        } catch (error) {
+            Logger.error(`Error fetching response or form for formId ${form_id}:`, error)
+            throw new Error(`Error fetching response or form for formId ${form_id}`)
+        }
+
+        if (!form) {
+            Logger.error(`Form not found Form Id: ${form_id}`)
+            throw new Error(`Form not found Form Id: ${form_id}`)
+        }
+
+        Logger.log(`Form and response fetched successfully.. Starting analysis of ${response_array.length} responses`)
+
+        const question_array = form.questions;
+        const answersMap = new Map<number, object>();
+        let analytics: {
+            question_no: any;
+            question: any;
+            response_type: any;
+            data: any;
+        }[] = [];
+
+        try {
+            for (const question of question_array) {
+                if (question.response_type === ResponseType.SINGLE_CORRECT || question.response_type === ResponseType.MULTIPLE_CORRECT) {
+                    let options = {}
+                    for (const option of question.options) {
+                        options[option] = 0;
+                    }
+                    answersMap.set(question.question_no, options);
+                }
+            }
+
+            for (const response of response_array) {
+                for (const answer of response.response) {
+                    if (answersMap.has(answer.question_no)) {
+                        let options = answersMap.get(parseInt(answer.question_no));
+                        if (options) {
+                            for (const ans of answer.response) {
+                                if (options.hasOwnProperty(ans)) {
+                                    options[ans]++;
+                                }
+                            }
+                        }
+                        answersMap.set(parseInt(answer.question_no), options ?? {});
+                    }
+                }
+            }
+
+            for (const question of question_array) {
+                if (question.response_type === ResponseType.SINGLE_CORRECT || question.response_type === ResponseType.MULTIPLE_CORRECT) {
+                    let ans = answersMap.get(question.question_no) || {};
+                    let data: { value: any; label: string }[] = [];
+                    for (const [label, value] of Object.entries(ans)) {
+                        data.push({ value, label });
+                    }
+                    analytics.push({
+                        question_no: question.question_no,
+                        question: question.question,
+                        response_type: question.response_type,
+                        data: data
+                    });
+                }
+            }
+
+        } catch (error) {
+            Logger.error(`Error while calculating analytics for formId ${form_id}:`, error)
+            throw new Error(`Error while calculating analytics for formId ${form_id}:`)
+        }
+
+        return analytics;
+    }
 }
+

@@ -29,4 +29,10 @@ export class ResponseController {
     async getResponsesByFormId(@Param('formId') formId: string): Promise<any> {
         return this.responseService.findResponseByFormId(formId);
     }
+
+    @Get('analytics/:formId')
+    @ApiOperation({ summary: 'Get analytics of form responses', description: 'Retrieves analytics data for responses of a specific form ID.' })
+    async getAnalyticsOfFormResponses(@Param('formId') formId: string): Promise<any> {
+        return this.responseService.getResponseAnalyticsByFormId(formId);
+    }
 }
