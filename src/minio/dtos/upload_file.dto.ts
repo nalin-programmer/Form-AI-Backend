@@ -9,10 +9,10 @@ export class UploadFileDto {
     @IsString()
     question_no?: string;
 
-    @ApiProperty({ example: 'form_12345', description: 'The unique identifier of the form.' })
+    @ApiProperty({ example: 'folder_12345', description: 'The unique identifier of the form.' })
     @IsString()
     @IsNotEmpty()
-    form_id: string;
+    folder_id: string;
 
     @ApiProperty({ enum: PageType, description: 'The type of the page.' })
     @IsEnum(PageType)

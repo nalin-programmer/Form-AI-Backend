@@ -27,7 +27,7 @@ export class FilesService {
 
     uploadFile(file: Multer.File, uploadFileDto: UploadFileDto) {
         return new Promise((resolve, reject) => {
-            let filename = `formID_${uploadFileDto.form_id}/${uploadFileDto.page_type}`;
+            let filename = `form_${uploadFileDto.folder_id}/${uploadFileDto.page_type}`;
             if (uploadFileDto.page_type === PageType.QUESTION && uploadFileDto.question_no) {
                 filename += `_${uploadFileDto.question_no.toString()}`;
             }
@@ -44,7 +44,7 @@ export class FilesService {
                         Logger.log(`Error in uploading file: ${error}`)
                         reject(error);
                     } else {
-                        resolve({ objInfo, filename });
+                        resolve({ objInfo, path: filename });
                     }
                 },
             );
